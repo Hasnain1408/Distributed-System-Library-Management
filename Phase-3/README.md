@@ -1,262 +1,224 @@
-# 📚 Smart Library System - Microservices Architecture
+# Library Management System - Reverse Proxy with Nginx
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![Java](https://img.shields.io/badge/Java-17+-orange.svg)](https://www.oracle.com/java/)
-[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.0+-green.svg)](https://spring.io/projects/spring-boot)
-[![Docker](https://img.shields.io/badge/Docker-Containerized-blue.svg)](https://www.docker.com/)
+## System Architecture
 
-## 🚀 Overview
-
-The Smart Library System is a modern, cloud-native application built using microservices architecture. It demonstrates best practices in distributed systems design, featuring service isolation, independent databases, and RESTful API communication.
-
-### 🎯 Key Features
-
-- **🔐 User Management** - Registration, profiles, and authentication
-- **📖 Book Catalog** - Inventory management and search capabilities
-- **📋 Loan Processing** - Book borrowing and return workflows
-- **🏗️ Microservices Architecture** - Independent, scalable services
-- **📊 RESTful APIs** - Standard HTTP/JSON communication
-- **🐳 Containerized Deployment** - Docker-ready services
-
-## 🏛️ Architecture Overview
+The system follows a **microservices architecture** pattern, decomposing the application into three independent, loosely-coupled services:
 
 ```
-┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
-│   User Service  │    │  Book Service   │    │  Loan Service   │
-│                 │    │                 │    │                 │
-│ 🚪 Port: 8081   │    │ 🚪 Port: 8082   │    │ 🚪 Port: 8083   │
-│ 📦 user_db      │    │ 📦 book_db      │    │ 📦 loan_db      │
-└─────────────────┘    └─────────────────┘    └─────────────────┘
-         │                       │                       │
-         └───────────────────────┼───────────────────────┘
-                                 │
-                    ┌─────────────────┐
-                    │   API Gateway   │
-                    │   Port: 8080    │
-                    └─────────────────┘
+┌─────────────────┐    ┌──────────────────┐    ┌──────────────────┐
+│   User Service  │    │   Book Service   │    │   Loan Service   │
+│     (Port 8081) │    │     (Port 8082)  │    │     (Port 8083)  │
+└─────────────────┘    └──────────────────┘    └──────────────────┘
+         │                        │                        │
+         └────────────────────────┼────────────────────────┘
+                                  │
+                    ┌─────────────────────────┐
+                    │    Nginx Reverse Proxy  │
+                    │       (Port 8080/443)   │
+                    └─────────────────────────┘
+```
+## Phase 3: Nginx Reverse Proxy Implementation
+
+### Objectives
+- Implement Nginx as a single entry point for all API requests
+- Configure path-based routing to backend services
+- Enable SSL termination and HTTPS support
+- Implement centralized logging and error handling
+- Serve static content for frontend applications
+
+### Nginx Configuration Strategy
+```nginx
+# Path-based routing configuration
+location /api/users/ {
+    proxy_pass http://user-service:8081/api/users/;
+}
+
+location /api/books/ {
+    proxy_pass http://book-service:8082/api/books/;
+}
+
+location /api/loans/ {
+    proxy_pass http://loan-service:8083/api/loans/;
+}
 ```
 
-## 🧱 Services Overview
+### Key Features
+- **Load Balancing**: Distribute requests across multiple service instances
+- **SSL Termination**: Handle HTTPS encryption/decryption at the proxy level
+- **Request/Response Modification**: Add headers, modify content as needed
+- **Caching**: Implement response caching for improved performance
+- **Rate Limiting**: Protect backend services from excessive requests
+### Service Responsibilities
 
-| Service | Port | Database | Responsibility |
-|---------|------|----------|----------------|
-| **User Service** | 8081 | `user_db` | User registration, profile management |
-| **Book Service** | 8082 | `book_db` | Book inventory, search, availability |
-| **Loan Service** | 8083 | `loan_db` | Book borrowing, returns, loan history |
+#### 1. User Service (Port 8081)
+- **Domain**: User management and authentication
+- **Responsibilities**:
+  - User registration and profile management
+  - User authentication and authorization
+  - Role-based access control (student, librarian, admin)
+  - User data persistence and retrieval
 
-## 🛠️ Technology Stack
+#### 2. Book Service (Port 8082)
+- **Domain**: Book catalog and inventory management
+- **Responsibilities**:
+  - Book catalog management (CRUD operations)
+  - Inventory tracking and availability management
+  - Book search and filtering capabilities
+  - ISBN validation and duplicate prevention
+  - Statistical reporting on book inventory
 
-- **Backend**: Node.JS
-- **Database**: MongoDB/PostgreSQL / MySQL
-- **Communication**: REST APIs, HTTP/JSON
-- **Containerization**: Docker, Docker Compose
-- **Build Tool**: Maven / Gradle
-- **Documentation**: OpenAPI 3.0 (Swagger)
+#### 3. Loan Service (Port 8083)
+- **Domain**: Book lending and return management
+- **Responsibilities**:
+  - Loan transaction processing
+  - Due date management and overdue tracking
+  - Inter-service communication with User and Book services
+  - Loan history and reporting
+  - Business logic for lending rules and policies
 
-## 🚀 Quick Start
+## Technical Stack
+
+### Backend Technologies
+- **Runtime**: Node.js with Express.js framework
+- **Database**: MongoDB with Mongoose ODM
+- **Inter-service Communication**: HTTP/REST APIs using Axios
+- **Environment Management**: dotenv for configuration
+- **CORS**: Cross-Origin Resource Sharing support
+
+### Infrastructure
+- **Reverse Proxy**: Nginx for request routing and load balancing
+
+
+## API Specification
+
+### User Service API (`/api/users`)
+
+| Method | Endpoint | Description | Request Body |
+|--------|----------|-------------|--------------|
+| POST | `/` | Create new user | `{name, email, role}` |
+| GET | `/:id` | Get user by ID | - |
+| PUT | `/:id` | Update user | `{name?, email?, role?}` |
+| GET | `/` | Get all users | Query: `?search=term` |
+
+### Book Service API (`/api/books`)
+
+| Method | Endpoint | Description | Request Body |
+|--------|----------|-------------|--------------|
+| POST | `/` | Add new book | `{title, author, isbn?, copies?}` |
+| GET | `/:id` | Get book by ID | - |
+| PUT | `/:id` | Update book | `{title?, author?, isbn?, copies?}` |
+| DELETE | `/:id` | Delete book | - |
+| GET | `/search` | Search books | Query: `?search=term&page=1&per_page=10` |
+| PATCH | `/:id/availability` | Update availability | `{operation: 'increment'|'decrement'}` |
+| GET | `/stats` | Get inventory statistics | - |
+
+### Loan Service API (`/api/loans`)
+
+| Method | Endpoint | Description | Request Body |
+|--------|----------|-------------|--------------|
+| POST | `/` | Create new loan | `{user_id, book_id, due_date}` |
+| POST | `/returns` | Return book | `{loan_id}` |
+| GET | `/user/:user_id` | Get user's loans | - |
+| GET | `/:id` | Get loan by ID | - |
+| GET | `/overdue` | Get overdue loans | - |
+
+## Data Models
+
+### User Model
+```javascript
+{
+  name: String (required),
+  email: String (required, unique),
+  role: String (enum: ['student', 'librarian', 'admin'], default: 'student'),
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+### Book Model
+```javascript
+{
+  title: String (required),
+  author: String (required),
+  isbn: String (unique, optional),
+  copies: Number (default: 1),
+  available_copies: Number,
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+### Loan Model
+```javascript
+{
+  user_id: ObjectId (required),
+  book_id: ObjectId (required),
+  issue_date: Date (default: now),
+  due_date: Date (required),
+  return_date: Date (optional),
+  status: String (enum: ['ACTIVE', 'RETURNED', 'OVERDUE']),
+  createdAt: Date,
+  updatedAt: Date
+}
+```
+
+## Inter-Service Communication
+
+The system implements **synchronous communication** patterns using HTTP/REST APIs:
+
+1. **Service Discovery**: Static configuration using environment variables
+2. **API Gateway Pattern**: Nginx serves as the API gateway for external clients
+3. **Circuit Breaker**: Basic error handling with service unavailability responses
+4. **Data Consistency**: Eventual consistency through compensating transactions
+
+### Communication Flow Example: Creating a Loan
+
+```
+1. Client → Nginx → Loan Service
+2. Loan Service → User Service (validate user exists)
+3. Loan Service → Book Service (validate book availability)
+4. Loan Service → Book Service (decrement available copies)
+5. Loan Service → Database (create loan record)
+6. Loan Service → Client (return loan details)
+```
+
+
+
+## Installation and Setup
 
 ### Prerequisites
-
-- Node.JS
-- Docker & Docker Compose
-- Maven 3.6+
-
-### 1. Clone the Repository
-
-```bash
-git clone https://github.com/your-username/smart-library-system.git
-cd smart-library-system
-```
-
-### 2. Start with Docker Compose
-
-```bash
-# Start all services and databases
-docker-compose up -d
-
-# Check service health
-docker-compose ps
-```
-
-### 3. Access the Services
-
-| Service | URL | Documentation |
-|---------|-----|---------------|
-| User Service | http://localhost:8081 | http://localhost:8081/swagger-ui.html |
-| Book Service | http://localhost:8082 | http://localhost:8082/swagger-ui.html |
-| Loan Service | http://localhost:8083 | http://localhost:8083/swagger-ui.html |
-
-## 📋 API Examples
-
-### 👤 User Service
-
-```bash
-# Create a new user
-curl -X POST http://localhost:8081/api/users \
-  -H "Content-Type: application/json" \
-  -d '{
-    "name": "Alice Smith",
-    "email": "alice@example.com",
-    "role": "student"
-  }'
-
-# Get user by ID
-curl http://localhost:8081/api/users/1
-```
-
-### 📚 Book Service
-
-```bash
-# Add a new book
-curl -X POST http://localhost:8082/api/books \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "Clean Code",
-    "author": "Robert C. Martin",
-    "isbn": "9780132350884",
-    "copies": 3
-  }'
-
-# Search books
-curl "http://localhost:8082/api/books?search=clean"
-```
-
-### 📋 Loan Service
-
-```bash
-# Issue a book
-curl -X POST http://localhost:8083/api/loans \
-  -H "Content-Type: application/json" \
-  -d '{
-    "user_id": 1,
-    "book_id": 42,
-    "due_date": "2025-06-03T23:59:59Z"
-  }'
-
-# Return a book
-curl -X POST http://localhost:8083/api/returns \
-  -H "Content-Type: application/json" \
-  -d '{
-    "loan_id": 1001
-  }'
-```
+- Node.js (v16 or higher)
+- MongoDB (v4.4 or higher)
+- Nginx (v1.18 or higher)
+- Git for version control
 
 
-## 📊 Database Schema
 
-### User Service Database
+## Testing Strategy
 
-```sql
-CREATE TABLE users (
-    id BIGSERIAL PRIMARY KEY,
-    name VARCHAR(255) NOT NULL,
-    email VARCHAR(255) UNIQUE NOT NULL,
-    role VARCHAR(50) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
+### Unit Testing
+- Service-specific business logic testing
+- Data model validation testing
+- Error handling and edge cases
 
-### Book Service Database
+### Integration Testing
+- Inter-service communication testing
+- Database integration testing
+- API endpoint testing with various payloads
 
-```sql
-CREATE TABLE books (
-    id BIGSERIAL PRIMARY KEY,
-    title VARCHAR(500) NOT NULL,
-    author VARCHAR(255) NOT NULL,
-    isbn VARCHAR(20) UNIQUE,
-    copies INTEGER NOT NULL DEFAULT 1,
-    available_copies INTEGER NOT NULL DEFAULT 1,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
-
-### Loan Service Database
-
-```sql
-CREATE TABLE loans (
-    id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL,
-    book_id BIGINT NOT NULL,
-    issue_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    due_date TIMESTAMP NOT NULL,
-    return_date TIMESTAMP,
-    status VARCHAR(20) NOT NULL DEFAULT 'ACTIVE',
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-```
+### End-to-End Testing
+- Complete user workflows
+- Error scenarios and recovery
+- Performance and load testing
 
 
-## 🧪 Testing
 
-### Run Unit Tests
+## Future Enhancements
 
-```bash
-# Test all services
-mvn test
-
-# Test specific service
-cd user-service && mvn test
-cd book-service && mvn test
-cd loan-service && mvn test
-```
-
-### Integration Tests
-
-```bash
-# Start test environment
-docker-compose -f docker-compose.test.yml up -d
-
-# Run integration tests
-mvn verify
-```
-
-### API Testing with Postman
-
-Import the provided Postman collection:
-- `postman/Smart-Library-System.postman_collection.json`
-- `postman/Smart-Library-System.postman_environment.json`
-
-## 📈 Monitoring & Observability
-
-### Health Checks
-
-```bash
-# Check service health
-curl http://localhost:8081/actuator/health
-curl http://localhost:8082/actuator/health
-curl http://localhost:8083/actuator/health
-```
-
-## 🔧 Configuration
-
-### Environment Variables
-
-| Variable | Description | Default |
-|----------|-------------|---------|
-| `SERVER_PORT` | Service port | Service-specific |
-| `SPRING_DATASOURCE_URL` | Database URL | - |
-| `USER_SERVICE_URL` | User service endpoint | `http://localhost:8081` |
-| `BOOK_SERVICE_URL` | Book service endpoint | `http://localhost:8082` |
-
-
-## ✅ Advantages of This Architecture
-
-- **🔄 Independent Development** - Teams can work on services simultaneously
-- **🚀 Scalability** - Scale services independently based on demand  
-- **🛡️ Fault Isolation** - Service failures don't cascade
-- **🔧 Technology Flexibility** - Choose best tools for each service
-- **📊 Clear Boundaries** - Well-defined service responsibilities
-
-## ⚠️ Considerations
-
-- **🌐 Network Latency** - Inter-service communication overhead
-- **🔍 Distributed Tracing** - Complex debugging across services
-- **📊 Data Consistency** - Managing consistency across boundaries
-- **🎯 Service Discovery** - Services need to locate each other
-- **⚙️ Operational Complexity** - More moving parts to manage
-
-
-Made with ❤️ by the Smart Library Team
+1. **Event-Driven Architecture**: Implement message queues (RabbitMQ/Apache Kafka)
+2. **Containerization**: Full Docker containerization with orchestration
+3. **Service Mesh**: Implement Istio for advanced traffic management
+4. **API Versioning**: Support multiple API versions
+5. **Real-time Notifications**: WebSocket-based notifications
+6. **Advanced Search**: Elasticsearch integration for complex queries
+7. **Reporting Dashboard**: Analytics and reporting interface
