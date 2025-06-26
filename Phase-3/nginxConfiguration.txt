@@ -1,0 +1,32 @@
+
+1.Copy or symlink nginx.conf to the Nginx configuration directory
+sudo cp /home/hasnain/Desktop/BSSE/Semester\ 06/CSE-601/Library\ Management\ System/Phase-3/config/nginx.conf /etc/nginx/nginx.conf     
+# sudo cp (directory of nginx.conf in Local machine)  (directory of nginx.conf Configuration)
+
+
+2.Test the Nginx configuration for syntax errors
+sudo nginx -t  
+
+# Expected Output --
+nginx: the configuration file /etc/nginx/nginx.conf syntax is ok
+nginx: configuration file /etc/nginx/nginx.conf test is successful               
+
+3.Start Nginx
+sudo systemctl start nginx
+
+4.Enable Nginx
+sudo systemctl enable nginx 
+
+5.Check If Enabled
+sudo systemctl is-enabled nginx
+
+# Expected Output --
+enabled
+                            ---End Of Setup---
+
+1.Modify nginx.config                           
+sudo nano /etc/nginx/nginx.conf  
+# (for modification of nginx.config file in this /etc/nginx/nginx.conf directory)            
+
+2.Test and Reload Nginx
+sudo nginx -t && sudo systemctl reload nginx
