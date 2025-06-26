@@ -1,2 +1,11 @@
-backend/node_modules/
-backend/.env
+# === Phase -1 ===
+Phase-1/node_modules
+Phase-1/.env
+
+# === Phase -2 ===
+Phase-2/book-service/node_modules
+Phase-2/book-service/.env
+Phase-2/loan-service/node_modules
+Phase-2/loan-service/.env
+Phase-2/user-service/node_modules
+Phase-2/user-service/.env
