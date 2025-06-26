@@ -36,3 +36,4 @@ router.get('/:user_id', getUserLoans);
 router.put('/:id/extend', extendLoan);
 
 export default router;
+
