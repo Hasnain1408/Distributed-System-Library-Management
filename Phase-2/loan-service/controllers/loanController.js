@@ -62,7 +62,7 @@ const updateBookAvailability = async (bookId, operation) => {
 };
 
 // Create a new loan (issue a book)
-const createLoan = async (req, res) => {
+const issueBook = async (req, res) => {
   try {
     const { user_id, book_id, due_date } = req.body;
     
@@ -375,7 +375,7 @@ const getOverdueLoans = async (req, res) => {
 };
 
 export {
-  createLoan,
+  issueBook,
   returnBook,
   getUserLoans,
   getLoanById,
