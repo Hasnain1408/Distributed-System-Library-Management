@@ -19,4 +19,11 @@ Phase-2/loan-service/.env
 Phase-2/user-service/node_modules
 Phase-2/user-service/.env
 
-|# === Phase -3 ===
+# === Phase -3 ===
+Phase-3/node_modules
+Phase-3/book-service/node_modules
+Phase-3/book-service/.env
+Phase-3/loan-service/node_modules
+Phase-3/loan-service/.env
+Phase-3/user-service/node_modules
+Phase-3/user-service/.env   
