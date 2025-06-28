@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 const connectDB = async () => {
   try {
     // Each service connects to its own database
-    const conn = await mongoose.connect(process.env.MONGO_URI || 'mongodb://localhost:27017/user-service-db');
+    const conn = await mongoose.connect(process.env.MONGO_URI_USER || 'mongodb://localhost:27017/user-service-db');
     
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {

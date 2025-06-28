@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # Expose port for Loan Service
-EXPOSE 8081
+EXPOSE 8083
 
 # Command to run the Loan Service
 CMD ["npm", "start"]

@@ -1,36 +1,31 @@
-version: '3.8'
-
 services:
   user-service:
     build:
       context: ./user-service
       dockerfile: Dockerfile.user
     ports:
-      - "8080:8080"
+      - "8081:8081"
     environment:
-      - MONGO_URI=mongodb://mongo:27017/userdb
-    depends_on:
-      - mongo
+      - MONGO_URI=${MONGO_URI_USER}
     networks:
       - library-network
-
   loan-service:
     build:
       context: ./loan-service
       dockerfile: Dockerfile.loan
     ports:
-      - "8081:8081"
+      - "8083:8083"
     environment:
-      - MONGO_URI=mongodb://mongo:27017/loandb
-      - USER_SERVICE_URL=http://user-service:8080/api/users
+      - MONGO_URI=${MONGO_URI_LOAN}
+      - USER_SERVICE_URL=http://user-service:8081/api/users
       - BOOK_SERVICE_URL=http://book-service:8082/api/books
     depends_on:
-      - mongo
-      - user-service
-      - book-service
+      user-service:
+        condition: service_started
+      book-service:
+        condition: service_started
     networks:
       - library-network
-
   book-service:
     build:
       context: ./book-service
@@ -38,25 +33,13 @@ services:
     ports:
       - "8082:8082"
     environment:
-      - MONGO_URI=mongodb://mongo:27017/bookdb
-    depends_on:
-      - mongo
+      - MONGO_URI=${MONGO_URI_BOOK}
     networks:
       - library-network
-
-  mongo:
-    image: mongo:latest
-    ports:
-      - "27017:27017"
-    volumes:
-      - mongo-data:/data/db
-    networks:
-      - library-network
-
   nginx:
     image: nginx:latest
     ports:
-      - "80:80"
+      - "8080:8080"
     volumes:
       - ./config/nginx.conf:/etc/nginx/nginx.conf
     depends_on:
@@ -65,10 +48,6 @@ services:
       - book-service
     networks:
       - library-network
-
-volumes:
-  mongo-data:
-
 networks:
   library-network:
     driver: bridge

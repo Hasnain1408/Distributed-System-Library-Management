@@ -14,7 +14,7 @@ RUN npm install
 COPY . .
 
 # Expose port for User Service
-EXPOSE 8080
+EXPOSE 8081
 
 # Command to run the User Service
 CMD ["npm", "start"]
