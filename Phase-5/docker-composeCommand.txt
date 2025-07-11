@@ -1,0 +1,10 @@
+Docker Compose Commands
+
+docker-compose up --build -d         (Builds (if needed) and starts all services defined in docker-compose.yml)
+docker-compose down	                 (Stops and removes all containers, networks, and (optionally) volumes and images defined in docker-compose.yml)
+docker-compose down -v               (Stop and remove named volumes created by Compose)   
+docker-compose stop                  (stop but not remove)  
+docker-compose start                 (later you can start again)    
+docker-compose logs -f               git (Streams logs in real-time for all services)
+sudo systemctl restart docker		 (Restarts the Docker service to resolve daemon-related issues)
+docker network inspect	             (Displays detailed information about a Docker network)
